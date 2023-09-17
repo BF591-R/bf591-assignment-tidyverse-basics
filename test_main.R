@@ -31,3 +31,77 @@ test_that("rename_and_select renames and selects the correct columns", {
     fail("The returned tibble does not have the expected column names. Ensure your function renames and selects columns correctly.")
   }
 })
+
+
+
+# Test for stage_as_factor function
+test_that("stage_as_factor adds a Stage column with the correct format", {
+  # Assuming data is a tibble with TNM_Stage column
+  result <- stage_as_factor(data)
+  
+  if (!"Stage" %in% names(result)) {
+    fail("Stage column is missing from the returned tibble. Ensure your function adds this column.")
+  }
+  
+  if (!is.factor(result$Stage)) {
+    fail("Stage column should be of type factor. Make sure you've set it as such.")
+  }
+  
+  if (!all(grepl("^stage ", result$Stage))) {
+    fail("Entries in the Stage column do not follow the 'stage x' format. Double-check the string manipulation in your function.")
+  }
+})
+
+# Test for mean_age_by_sex function
+test_that("mean_age_by_sex calculates correct mean age for given sex", {
+  # Assuming data is a tibble with Sex and Age columns
+  mean_age <- mean(data[data$Sex == sex, ]$Age)
+  result <- mean_age_by_sex(data, sex)
+  
+  if (!identical(result, mean_age)) {
+    fail("The calculated mean age does not match the expected value. Check the aggregation logic in your function.")
+  }
+})
+
+# Test for age_by_stage function
+test_that("age_by_stage calculates average age per stage correctly", {
+  # Assuming data has a Stage column
+  result <- age_by_stage(data)
+  
+  if (!"Stage" %in% names(result) || !"mean_age" %in% names(result)) {
+    fail("The result should contain 'Stage' and 'mean_age' columns. Ensure your aggregation is correct.")
+  }
+})
+
+# Test for subtype_stage_cross_tab function
+test_that("subtype_stage_cross_tab returns correct cross-tabulated table", {
+  result <- subtype_stage_cross_tab(data)
+  
+  if (!"Stage" %in% rownames(result) || !"Subtype" %in% colnames(result)) {
+    fail("Your result table should have 'Stage' as rows and 'Subtype' as columns.")
+  }
+  
+  if (any(is.na(result))) {
+    fail("Your table should not have any NA values. Fill missing pairs with zeros.")
+  }
+})
+
+# Test for summarize_expression function
+test_that("summarize_expression provides a correct summary of the expression matrix", {
+  result <- summarize_expression(exprs)
+  
+  if (!all(c("main_exp", "variance", "probe") %in% names(result))) {
+    fail("The resulting tibble should contain 'main_exp', 'variance', and 'probe' columns.")
+  }
+  
+  if (nrow(result) != ncol(exprs)) {
+    fail("Number of rows in the summary should equal the number of columns (probes) in the expression matrix.")
+  }
+})
+
+
+
+
+
+
+

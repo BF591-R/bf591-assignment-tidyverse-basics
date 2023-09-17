@@ -8,10 +8,11 @@ test_that("read_expression_table returns tibble with subject_id column", {
   if (!"subject_id" %in% names(result)) {
     fail("subject_id column is missing from the returned tibble. Make sure to include this column in your function output.")
   }
-  if (!is.tibble(result)) {
+  if (!is_tibble(result)) {  # <-- Updated this line
     fail("The returned result is not a tibble. Ensure your function returns a tibble.")
   }
 })
+
 
 # Test for period_to_underscore function
 test_that("period_to_underscore replaces period with underscore", {

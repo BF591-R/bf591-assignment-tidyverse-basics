@@ -58,6 +58,9 @@ test_that("period_to_underscore replaces period with underscore", {
 
 # Test for rename_and_select function
 test_that("rename_and_select renames and selects the correct columns", {
+  
+  metadata <- load_metadata('data/proj_metadata.csv')
+  colnames(metadata) <- lapply(colnames(metadata), period_to_underscore)
   result <- rename_and_select(metadata)
   expected_names <- c("Sex", "Age", "TNM_Stage", "Tumor_Location", "geo_accession", "KRAS_Mutation", "Subtype", "Batch")
   expect_identical(names(result), expected_names, info = "The returned tibble does not have the expected column names. Ensure your function renames and selects columns correctly.")
@@ -67,7 +70,10 @@ test_that("rename_and_select renames and selects the correct columns", {
 
 
 test_that("stage_as_factor adds a Stage column with the correct format", {
-  result <- stage_as_factor(data/example_intensity_data_subset.csv)
+  metadata <- load_metadata('data/proj_metadata.csv')
+  colnames(metadata) <- lapply(colnames(metadata), period_to_underscore)
+  result <- rename_and_select(metadata)
+  result <- stage_as_factor(result)
   
   expect_true("Stage" %in% names(result), info = "Stage column is missing from the returned tibble. Ensure your function adds this column.")
   
@@ -93,7 +99,7 @@ test_that("mean_age_by_sex calculates correct mean age for given sex", {
     
     result <- mean_age_by_sex(data, sex)
     
-    expect_identical(result, mean_age, 
+    expect_equal(as.double(result), as.double(mean_age), 
                      info = paste("The calculated mean age for", sex, "does not match the expected value. Check the aggregation logic in your function."))
   }
 })
@@ -173,7 +179,7 @@ test_that("summarize_expression behaves as expected", {
   expect_true(is_tibble(result), info = "The returned result is not a tibble. Ensure your function returns a tibble.")
   
   # Check that result has the expected columns
-  expect_identical(names(result), c("main_exp", "variance", "probe"), info = "The returned tibble does not have the expected column names.")
+  expect_identical(names(result), c("mean_exp", "variance", "probe"), info = "The returned tibble does not have the expected column names.")
   
   # Check number of rows
   expect_equal(nrow(result), ncol(exprs), info = "Mismatch in the number of rows of the result compared to the number of columns in the expression matrix.")

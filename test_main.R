@@ -5,21 +5,23 @@ library(testthat)
 # Test for read_expression_table function
 test_that("read_expression_table returns tibble with subject_id column", {
   result <- read_expression_table('example_intensity_data.csv')
-  if (!"subject_id" %in% names(result)) {
-    fail("subject_id column is missing from the returned tibble. Make sure to include this column in your function output.")
-  }
-  if (!is_tibble(result)) {  # 
-    fail("The returned result is not a tibble. Ensure your function returns a tibble.")
-  }
+  
+  # Check for subject_id in column names
+  expect_true("subject_id" %in% names(result), 
+              info = "subject_id column is missing from the returned tibble. Make sure to include this column in your function output.")
+  
+  # Check if result is a tibble
+  expect_true(is_tibble(result), 
+              info = "The returned result is not a tibble. Ensure your function returns a tibble.")
 })
-
 
 # Test for period_to_underscore function
 test_that("period_to_underscore replaces period with underscore", {
   result <- period_to_underscore("foo.bar.baz")
-  if (result != "foo_bar_baz") {
-    fail("The function did not replace periods with underscores correctly. Check the string manipulation in your function.")
-  }
+  
+  # Check string manipulation
+  expect_equal(result, "foo_bar_baz", 
+               info = "The function did not replace periods with underscores correctly. Check the string manipulation in your function.")
 })
 
 

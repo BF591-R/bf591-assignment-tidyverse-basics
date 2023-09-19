@@ -1,10 +1,24 @@
 #!/usr/bin/Rscript
 source("main.R")
 library(testthat)
+library(tidyverse)
+
+
+# Read the data
+data <- read_delim("data/example_intensity_data.csv", delim = " ")
+head(data)
+# Randomly sample 1000 rows
+set.seed(123)  # For reproducibility
+subset_data <- data %>% 
+  sample_n(min(nrow(data), 1000))
+
+# Write the subsetted data back to the CSV
+write_csv(subset_data, "data/example_intensity_data_subset.csv")
+
 
 # Test for read_expression_table function
 test_that("read_expression_table returns tibble with subject_id column", {
-  result <- read_expression_table('example_intensity_data.csv')
+  result <- read_expression_table('data/example_intensity_data_subset.csv')
   
   # Check for subject_id in column names
   expect_true("subject_id" %in% names(result), 
@@ -58,14 +72,18 @@ test_that("stage_as_factor adds a Stage column with the correct format", {
 # Test for mean_age_by_sex function
 test_that("mean_age_by_sex calculates correct mean age for given sex", {
   for (sex in c("M", "F")) {
-    mean_age <- mean(data[data$Sex == sex, ]$Age, na.rm = TRUE)
+    mean_age <- data %>%
+      filter(Sex == sex) %>%
+      summarize(mean_age = mean(Age, na.rm = TRUE)) %>%
+      pull(mean_age)
+    
     result <- mean_age_by_sex(data, sex)
     
-    if (!identical(result, mean_age)) {
-      fail(paste("The calculated mean age for", sex, "does not match the expected value. Check the aggregation logic in your function."))
-    }
+    expect_identical(result, mean_age, 
+                     info = paste("The calculated mean age for", sex, "does not match the expected value. Check the aggregation logic in your function."))
   }
 })
+
 
 
 # Test for age_by_stage function

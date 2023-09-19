@@ -59,9 +59,10 @@ test_that("period_to_underscore replaces period with underscore", {
 # Test for rename_and_select function
 test_that("rename_and_select renames and selects the correct columns", {
   
-  metadata <- load_metadata('data/proj_metadata.csv')
-  colnames(metadata) <- lapply(colnames(metadata), period_to_underscore)
-  result <- rename_and_select(metadata)
+  fake_tibble <- tibble(Age_at_diagnosis = rep(10, 10), SixSubtypesClassification = rep('C4', 10), normalizationcombatbatch=rep('batch1', 10), Sex = rep(10, 10), TNM_Stage = rep(10, 10), Tumor_Location = rep(10, 10), geo_accession = rep(10, 10), KRAS_Mutation = rep(10, 10), extra = rep(10, 10), extra2 = rep(10, 10))
+  
+  result <- rename_and_select(fake_tibble)
+  
   expected_names <- c("Sex", "Age", "TNM_Stage", "Tumor_Location", "geo_accession", "KRAS_Mutation", "Subtype", "Batch")
   expect_identical(names(result), expected_names, info = "The returned tibble does not have the expected column names. Ensure your function renames and selects columns correctly.")
 })

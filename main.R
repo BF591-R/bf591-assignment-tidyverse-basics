@@ -19,10 +19,34 @@ library(stringr)
 #' @return
 #' @export
 #'
-#' @examples expr_mat <- read_expression_table('example_intensity_data.csv')
+#' @examples expr_mat <- read_expression_table('example_intensity_data_subset.csv')
 read_expression_table <- function(filename) {
   return (NULL)
 }
+
+
+
+#' Load Metadata from Specified CSV File
+#'
+#' This function reads the provided CSV file into a dataframe.
+#'
+#' @param filepath (character) The path to the CSV file.(data/proj_metadata.csv)
+#'
+#' @return A dataframe containing the loaded metadata.
+#'
+
+load_metadata <- function(filepath) {
+  
+  # TODO: Use appropriate function to read in the CSV file
+  #metadata <-   
+    
+    # Return the loaded metadata
+    #return(metadata)
+}
+
+
+
+
 
 
 #' Replaces all '.' in a string with '_'

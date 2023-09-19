@@ -6,7 +6,7 @@ library(tidyverse)
 
 # Read the data
 data <- read_delim("data/example_intensity_data.csv", delim = " ")
-head(data)
+
 # Randomly sample 1000 rows
 set.seed(123)  # For reproducibility
 subset_data <- data %>% 
@@ -29,6 +29,23 @@ test_that("read_expression_table returns tibble with subject_id column", {
               info = "The returned result is not a tibble. Ensure your function returns a tibble.")
 })
 
+
+
+test_that("load_metadata function loads metadata correctly", {
+  # The expected output using readr's read_csv function
+  expected_metadata <- readr::read_csv("data/proj_metadata.csv")
+  
+  # The output from the developer's function
+  calculated_metadata <- load_metadata("data/proj_metadata.csv")
+  
+  # Test: Compare the content of the expected and calculated metadata
+  expect_equal(expected_metadata, calculated_metadata, 
+               info = "The loaded metadata does not match the expected content.")
+})
+
+
+
+
 # Test for period_to_underscore function
 test_that("period_to_underscore replaces period with underscore", {
   result <- period_to_underscore("foo.bar.baz")
@@ -41,36 +58,33 @@ test_that("period_to_underscore replaces period with underscore", {
 
 # Test for rename_and_select function
 test_that("rename_and_select renames and selects the correct columns", {
-  #metadata is a tibble with required columns
   result <- rename_and_select(metadata)
   expected_names <- c("Sex", "Age", "TNM_Stage", "Tumor_Location", "geo_accession", "KRAS_Mutation", "Subtype", "Batch")
-  if (!identical(names(result), expected_names)) {
-    fail("The returned tibble does not have the expected column names. Ensure your function renames and selects columns correctly.")
-  }
+  expect_identical(names(result), expected_names, info = "The returned tibble does not have the expected column names. Ensure your function renames and selects columns correctly.")
 })
 
 
 
-# Test for stage_as_factor function
+
 test_that("stage_as_factor adds a Stage column with the correct format", {
-  #data is a tibble with TNM_Stage column
-  result <- stage_as_factor(data)
+  result <- stage_as_factor(data/example_intensity_data_subset.csv)
   
-  if (!"Stage" %in% names(result)) {
-    fail("Stage column is missing from the returned tibble. Ensure your function adds this column.")
-  }
+  expect_true("Stage" %in% names(result), info = "Stage column is missing from the returned tibble. Ensure your function adds this column.")
   
-  if (!is.factor(result$Stage)) {
-    fail("Stage column should be of type factor. Make sure you've set it as such.")
-  }
+  expect_true(is.factor(result$Stage), info = "Stage column should be of type factor. Make sure you've set it as such.")
   
-  if (!all(grepl("^stage ", result$Stage))) {
-    fail("Entries in the Stage column do not follow the 'stage x' format. Double-check the string manipulation in your function.")
-  }
+  expect_true(all(grepl("^stage ", result$Stage)), info = "Entries in the Stage column do not follow the 'stage x' format. Double-check the string manipulation in your function.")
 })
 
-# Test for mean_age_by_sex function
+
 test_that("mean_age_by_sex calculates correct mean age for given sex", {
+  # Create dummy data
+  set.seed(123)  # Setting seed for reproducibility
+  data <- tibble(
+    Sex = sample(c("M", "F"), 100, replace = TRUE), 
+    Age = sample(15:90, 100, replace = TRUE)
+  )
+  
   for (sex in c("M", "F")) {
     mean_age <- data %>%
       filter(Sex == sex) %>%
@@ -86,55 +100,61 @@ test_that("mean_age_by_sex calculates correct mean age for given sex", {
 
 
 
-# Test for age_by_stage function
 test_that("age_by_stage calculates average age per stage correctly", {
+  # Create mock test data
+  test_data <- tibble(
+    Stage = c(rep('stage 1', 4), rep('stage 2', 3), rep('stage 3', 2), rep('stage 4', 1)),
+    Age = c(21, 22, 23, 24, 25, 26, 27, 28, 29, 30)
+  )
   
-  result <- tryCatch({
-    age_by_stage(data)
-  }, error = function(e) {
-    stop("Error executing the age_by_stage function. Please check the function implementation.")
-  })
+  # Calculate expected result
+  expected_result <- test_data %>%
+    group_by(Stage) %>%
+    summarize(mean_avg = mean(Age)) %>%
+    ungroup() %>%
+    arrange(Stage)
   
-  tryCatch({
-    # Check that result has two columns
-    expect_equal(ncol(result), 2)
-  }, error = function(e) {
-    stop("The result should have two columns.")
-  })
+  # Apply function on mock test data
+  calculated_result <- age_by_stage(test_data)
   
-  tryCatch({
-    # Check that one column matches the unique values of 'Stage' from the data
-    expect_true(any(identical(result[[1]], unique(data$Stage)) | 
-                      identical(result[[2]], unique(data$Stage))))
-  }, error = function(e) {
-    stop("One column of the result should match the unique values of 'Stage' from the data.")
-  })
+  # Ensure calculated_result has the required columns
+  expect_true(all(c("Stage", "mean_avg") %in% colnames(calculated_result)),
+              info = "The result should have 'Stage' and 'mean_avg' columns.")
   
-  tryCatch({
-    # Check that the other column contains only numeric values
-    if (is.numeric(result[[1]])) {
-      expect_true(all(is.numeric(result[[1]])))
-    } else {
-      expect_true(all(is.numeric(result[[2]])))
-    }
-  }, error = function(e) {
-    stop("One of the columns in the result should contain only numeric values.")
-  })
+  # Compare the calculated result to the expected result
+  expect_equivalent(
+    calculated_result, 
+    expected_result,
+    info = "The calculated result does not match the expected result. Please check the function logic."
+  )
 })
 
 
 
 # Test for subtype_stage_cross_tab function
 test_that("subtype_stage_cross_tab returns correct cross-tabulated table", {
-  result <- subtype_stage_cross_tab(data)
+  # Create test data
+  test_stage <- tibble(Stage = c(rep('stage 4', 2), rep('stage 3', 1), rep('stage 1', 4), rep('stage 2', 3)), 
+                       Subtype = c(rep('C4', 3), rep('C3', 7)))
   
-  if (!"Stage" %in% rownames(result) || !"Subtype" %in% colnames(result)) {
-    fail("Your result table should have 'Stage' as rows and 'Subtype' as columns.")
-  }
+  # Create expected cross-tabulated result
+  test_crosstab <- test_stage %>% 
+    group_by(Stage) %>% 
+    count(Subtype) %>% 
+    pivot_wider(names_from=Subtype, values_from=n, values_fill=0) %>% 
+    as_tibble()
   
-  if (any(is.na(result))) {
-    fail("Your table should not have any NA values. Fill missing pairs with zeros.")
-  }
+  # Calculate cross-tabulated result using the function
+  calculated_crosstab <- subtype_stage_cross_tab(test_stage)
+  
+  # Ensure that there are no NA values in the result
+  expect_false(any(is.na(calculated_crosstab)), info = "Your table should not have any NA values. Fill missing pairs with zeros.")
+  
+  # Ensure 'Stage' is present as a column
+  expect_true("Stage" %in% colnames(calculated_crosstab), info = "'Stage' should be present as a column in the calculated table.")
+  
+  # Check if the calculated result matches the expected result
+  expect_equal(test_crosstab, calculated_crosstab, info = "The calculated cross-tabulated table does not match the expected result.")
 })
 
 
@@ -142,58 +162,33 @@ test_that("subtype_stage_cross_tab returns correct cross-tabulated table", {
 test_that("summarize_expression behaves as expected", {
   
   # Read expression matrix
-  exprs <- read.csv("data/example_intensity_data.csv")
+  exprs <- read.csv("data/example_intensity_data_subset.csv")
   
+  # Only retain numeric columns
+  exprs <- exprs[, sapply(exprs, is.numeric)]
   
-  result <- tryCatch({
-    summarize_expression(exprs)
-  }, error = function(e) {
-    stop("Error executing the summarize_expression function. Please check the function implementation.")
-  })
+  result <- summarize_expression(exprs)
   
-  tryCatch({
-    # Check that result is a tibble
-    expect_true(is_tibble(result))
-  }, error = function(e) {
-    stop("The returned result is not a tibble. Ensure your function returns a tibble.")
-  })
+  # Check that result is a tibble
+  expect_true(is_tibble(result), info = "The returned result is not a tibble. Ensure your function returns a tibble.")
   
-  tryCatch({
-    # Check that result has the expected columns
-    expect_identical(names(result), c("main_exp", "variance", "probe"))
-  }, error = function(e) {
-    stop("The returned tibble does not have the expected column names.")
-  })
+  # Check that result has the expected columns
+  expect_identical(names(result), c("main_exp", "variance", "probe"), info = "The returned tibble does not have the expected column names.")
   
-  tryCatch({
-    # Check number of rows
-    expect_equal(nrow(result), ncol(exprs))
-  }, error = function(e) {
-    stop("Mismatch in the number of rows of the result compared to the number of columns in the expression matrix.")
-  })
+  # Check number of rows
+  expect_equal(nrow(result), ncol(exprs), info = "Mismatch in the number of rows of the result compared to the number of columns in the expression matrix.")
   
-  tryCatch({
-    # Check values in main_exp column
-    expected_means <- colMeans(exprs)
-    expect_identical(result$main_exp, expected_means)
-  }, error = function(e) {
-    stop("Mismatch between the expected means and the means in the main_exp column.")
-  })
+  # Check values in main_exp column
+  expected_means <- colMeans(exprs)
+  expect_identical(result$main_exp, expected_means, info = "Mismatch between the expected means and the means in the main_exp column.")
   
-  tryCatch({
-    # Check values in variance column
-    expected_variances <- apply(exprs, 2, var)
-    expect_identical(result$variance, expected_variances)
-  }, error = function(e) {
-    stop("Mismatch between the expected variances and the variances in the variance column.")
-  })
+  # Check values in variance column
+  expected_variances <- apply(exprs, 2, var)
+  expect_identical(result$variance, expected_variances, info = "Mismatch between the expected variances and the variances in the variance column.")
   
-  tryCatch({
-    # Check values in probe column
-    expect_identical(result$probe, colnames(exprs))
-  }, error = function(e) {
-    stop("Mismatch between the expected probe names and the probe names in the probe column.")
-  })
+  # Check values in probe column
+  expect_identical(result$probe, colnames(exprs), info = "Mismatch between the expected probe names and the probe names in the probe column.")
+  
 })
 
 

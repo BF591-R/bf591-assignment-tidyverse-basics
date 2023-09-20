@@ -4,18 +4,6 @@ library(testthat)
 library(tidyverse)
 
 
-# Read the data
-data <- read_delim("data/example_intensity_data.csv", delim = " ")
-
-# Randomly sample 1000 rows
-set.seed(123)  # For reproducibility
-subset_data <- data %>% 
-  sample_n(min(nrow(data), 1000))
-
-# Write the subsetted data back to the CSV
-write_csv(subset_data, "data/example_intensity_data_subset.csv")
-
-
 # Test for read_expression_table function
 test_that("read_expression_table returns tibble with subject_id column", {
   result <- read_expression_table('data/example_intensity_data_subset.csv')
@@ -71,18 +59,32 @@ test_that("rename_and_select renames and selects the correct columns", {
 
 
 test_that("stage_as_factor adds a Stage column with the correct format", {
-  metadata <- load_metadata('data/proj_metadata.csv')
-  colnames(metadata) <- lapply(colnames(metadata), period_to_underscore)
-  result <- rename_and_select(metadata)
-  result <- stage_as_factor(result)
+  
+  # Define the fake_tibble inside this test function
+  fake_tibble <- tibble::tibble(
+    Age_at_diagnosis = rep(10, 10),
+    SixSubtypesClassification = rep('C4', 10),
+    normalizationcombatbatch = rep('batch1', 10),
+    Sex = rep(10, 10),
+    TNM_Stage = rep(10, 10), # We're using the same value 10 for this example. Ideally, this would be different stages.
+    Tumor_Location = rep(10, 10),
+    geo_accession = rep(10, 10),
+    KRAS_Mutation = rep(10, 10),
+    extra = rep(10, 10),
+    extra2 = rep(10, 10)
+  )
+  
+  result <- stage_as_factor(fake_tibble)
   
   expect_true("Stage" %in% names(result), info = "Stage column is missing from the returned tibble. Ensure your function adds this column.")
   
   expect_true(is.factor(result$Stage), info = "Stage column should be of type factor. Make sure you've set it as such.")
   
   expect_true(all(grepl("^stage ", result$Stage)), info = "Entries in the Stage column do not follow the 'stage x' format. Double-check the string manipulation in your function.")
+  
+  # Since our fake tibble has 10 as the TNM_Stage for all rows, let's also check if the Stage is correctly formatted as "stage 10"
+  expect_true(all(result$Stage == "stage 10"), info = "Stage column does not have the expected values. Check the transformation in your function.")
 })
-
 
 test_that("mean_age_by_sex calculates correct mean age for given sex", {
   # Create dummy data
@@ -168,13 +170,18 @@ test_that("subtype_stage_cross_tab returns correct cross-tabulated table", {
 # Test for summarize_expression function
 test_that("summarize_expression behaves as expected", {
   
-  # Read expression matrix
-  exprs <- read.csv("data/example_intensity_data_subset.csv")
+  # Create a synthetic tibble
+  exprs <- tibble(
+    probe = c("A", "B"),
+    Sample1 = c(1, 2),
+    Sample2 = c(2, 3),
+    Sample3 = c(3, 4)
+  )
   
-  # Only retain numeric columns
-  exprs <- exprs[, sapply(exprs, is.numeric)]
+  # Extract numeric columns
+  exprs_numeric <- exprs[, sapply(exprs, is.numeric)]
   
-  result <- summarize_expression(exprs)
+  result <- summarize_expression(exprs_numeric)
   
   # Check that result is a tibble
   expect_true(is_tibble(result), info = "The returned result is not a tibble. Ensure your function returns a tibble.")
@@ -183,22 +190,19 @@ test_that("summarize_expression behaves as expected", {
   expect_identical(names(result), c("mean_exp", "variance", "probe"), info = "The returned tibble does not have the expected column names.")
   
   # Check number of rows
-  expect_equal(nrow(result), ncol(exprs), info = "Mismatch in the number of rows of the result compared to the number of columns in the expression matrix.")
+  expect_equal(nrow(result), ncol(exprs_numeric), info = "Mismatch in the number of rows of the result compared to the number of columns in the expression matrix.")
   
-  # Check values in main_exp column
-  expected_means <- colMeans(exprs)
-  expect_identical(result$main_exp, expected_means, info = "Mismatch between the expected means and the means in the main_exp column.")
+  # Check values in mean_exp column
+  expected_means <- colMeans(exprs_numeric)
+  expect_identical(result$mean_exp, expected_means, info = "Mismatch between the expected means and the means in the mean_exp column.")
   
   # Check values in variance column
-  expected_variances <- apply(exprs, 2, var)
+  expected_variances <- apply(exprs_numeric, 2, var)
   expect_identical(result$variance, expected_variances, info = "Mismatch between the expected variances and the variances in the variance column.")
   
   # Check values in probe column
-  expect_identical(result$probe, colnames(exprs), info = "Mismatch between the expected probe names and the probe names in the probe column.")
-  
+  expect_identical(result$probe, colnames(exprs_numeric), info = "Mismatch between the expected probe names and the probe names in the probe column.")
 })
-
-
 
 
 

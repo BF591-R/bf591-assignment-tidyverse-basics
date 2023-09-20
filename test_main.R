@@ -147,11 +147,13 @@ test_that("subtype_stage_cross_tab returns correct cross-tabulated table", {
                        Subtype = c(rep('C4', 3), rep('C3', 7)))
   
   # Create expected cross-tabulated result
-  test_crosstab <- test_stage %>% 
-    group_by(Stage) %>% 
-    count(Subtype) %>% 
-    pivot_wider(names_from=Subtype, values_from=n, values_fill=0) %>% 
-    as_tibble()
+  test_crosstab <- tribble(
+    ~Stage, ~C3, ~C4,
+    "stage 1", 4, 0,
+    "stage 2", 3, 0,
+    "stage 3", 0, 1,
+    "stage 4", 0, 2
+  )
   
   # Calculate cross-tabulated result using the function
   calculated_crosstab <- subtype_stage_cross_tab(test_stage)

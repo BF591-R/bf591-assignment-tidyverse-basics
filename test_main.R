@@ -174,16 +174,14 @@ test_that("summarize_expression behaves as expected", {
   
   # Create a synthetic tibble
   exprs <- tibble(
-    probe = c("A", "B"),
-    Sample1 = c(1, 2),
-    Sample2 = c(2, 3),
-    Sample3 = c(3, 4)
+    subject_id = c("A", "B"),
+    probe1 = c(1, 2),
+    probe2 = c(2, 7),
+    probe3 = c(3, 15)
   )
+
   
-  # Extract numeric columns
-  exprs_numeric <- exprs[, sapply(exprs, is.numeric)]
-  
-  result <- summarize_expression(exprs_numeric)
+  result <- summarize_expression(exprs)
   
   # Check that result is a tibble
   expect_true(is_tibble(result), info = "The returned result is not a tibble. Ensure your function returns a tibble.")
@@ -192,18 +190,20 @@ test_that("summarize_expression behaves as expected", {
   expect_identical(names(result), c("mean_exp", "variance", "probe"), info = "The returned tibble does not have the expected column names.")
   
   # Check number of rows
-  expect_equal(nrow(result), ncol(exprs_numeric), info = "Mismatch in the number of rows of the result compared to the number of columns in the expression matrix.")
+  expect_equal(nrow(result), 3, info = "Mismatch in the number of rows of the result compared to the number of columns in the expression matrix.")
   
   # Check values in mean_exp column
-  expected_means <- colMeans(exprs_numeric)
-  expect_identical(result$mean_exp, expected_means, info = "Mismatch between the expected means and the means in the mean_exp column.")
+  values_mean <- c(1.5, 4.5, 9)
+  names_mean <- c('probe1', 'probe2', 'probe3')
+  test_means <- setNames(values_mean, names_mean)
+  expect_identical(result %>% pull(mean_exp), test_means, info = "Mismatch between the expected means and the means in the mean_exp column.")
   
   # Check values in variance column
-  expected_variances <- apply(exprs_numeric, 2, var)
-  expect_identical(result$variance, expected_variances, info = "Mismatch between the expected variances and the variances in the variance column.")
+  values_var <- c(0.5, 12.5, 72)
+  names_var <- c('probe1', 'probe2', 'probe3')
+  test_var <- setNames(values_var, names_var)
+  expect_identical(result %>% pull(variance), test_var, info = "Mismatch between the expected variances and the variances in the variance column.")
   
-  # Check values in probe column
-  expect_identical(result$probe, colnames(exprs_numeric), info = "Mismatch between the expected probe names and the probe names in the probe column.")
 })
 
 

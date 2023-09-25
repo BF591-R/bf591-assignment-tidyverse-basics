@@ -155,7 +155,7 @@ subtype_stage_cross_tab <- function(data) {
 #' @param exprs An (n x p) expression matrix, where n is the number of samples,
 #' and p is the number of probes.
 #'
-#' @return A summarized tibble containing `main_exp`, `variance`, and `probe`
+#' @return A summarized tibble containing `mean_exp`, `variance`, and `probe`
 #' columns documenting average expression, probe variability, and probe ids,
 #' respectively.
 summarize_expression <- function(exprs) {

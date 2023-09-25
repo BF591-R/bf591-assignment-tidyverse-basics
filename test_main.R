@@ -116,28 +116,24 @@ test_that("age_by_stage calculates average age per stage correctly", {
     Age = c(21, 22, 23, 24, 25, 26, 27, 28, 29, 30)
   )
   
-  # Calculate expected result
-  expected_result <- test_data %>%
-    group_by(Stage) %>%
-    summarize(mean_avg = mean(Age)) %>%
-    ungroup() %>%
-    arrange(Stage)
-  
   # Apply function on mock test data
   calculated_result <- age_by_stage(test_data)
+  test_result <- calculated_result %>% pull(mean_avg, Stage)
+  
+  stage_names <- c('stage 1', 'stage 2', 'stage 3', 'stage 4')
+  stage_avgs <- c(22.5, 26, 28.5, 30)
+  stage_means <- setNames(stage_avgs, stage_names)
   
   # Ensure calculated_result has the required columns
   expect_true(all(c("Stage", "mean_avg") %in% colnames(calculated_result)),
               info = "The result should have 'Stage' and 'mean_avg' columns.")
   
   # Compare the calculated result to the expected result
-  expect_equivalent(
-    calculated_result, 
-    expected_result,
-    info = "The calculated result does not match the expected result. Please check the function logic."
-  )
+  expect_mapequal(
+    test_result, 
+    stage_means
+    )
 })
-
 
 
 # Test for subtype_stage_cross_tab function

@@ -197,13 +197,29 @@ test_that("summarize_expression behaves as expected", {
   values_mean <- c(1.5, 4.5, 9)
   names_mean <- c('probe1', 'probe2', 'probe3')
   test_means <- setNames(values_mean, names_mean)
-  expect_identical(result %>% pull(mean_exp), test_means, info = "Mismatch between the expected means and the means in the mean_exp column.")
+  
+  # tibbles do not auto-convert columns into a native format
+  # This should convert any format into a simple vector and 
+  # then a named vector which can be checked with expect_mapequal
+  # This works on a tibble with matrix columns, a tibble with named
+  # vectors as columns, and a tibble with vector columns
+  exprs_mean_values <- c(result$mean_exp)
+  exprs_mean_names <- c(result$probe)
+  exprs_means <- setNames(exprs_mean_values, exprs_mean_names)
+  
+  expect_mapequal(exprs_means, test_means)
   
   # Check values in variance column
+  # same strategy as outlined in comment above
   values_var <- c(0.5, 12.5, 72)
   names_var <- c('probe1', 'probe2', 'probe3')
-  test_var <- setNames(values_var, names_var)
-  expect_identical(result %>% pull(variance), test_var, info = "Mismatch between the expected variances and the variances in the variance column.")
+  test_vars <- setNames(values_var, names_var)
+  
+  exprs_var_values <- c(result$variance)
+  exprs_var_names <- c(result$probe)
+  exprs_vars <- setNames(exprs_var_values, exprs_var_names)
+  
+  expect_mapequal(exprs_vars, test_vars)
   
 })
 

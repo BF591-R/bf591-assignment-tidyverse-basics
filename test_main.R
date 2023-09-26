@@ -152,7 +152,12 @@ test_that("subtype_stage_cross_tab returns correct cross-tabulated table", {
   )
   
   # Calculate cross-tabulated result using the function
-  calculated_crosstab <- subtype_stage_cross_tab(test_stage)
+  # could use is_grouped() but ungroup() seems to leave 
+  # ungrouped tibbles unchanged, this should fix dplyr
+  # count() and summarize() issues with grouped tibbles
+  # not being equivalent to ungrouped tibbles even if they
+  # are functionally the same
+  calculated_crosstab <- subtype_stage_cross_tab(test_stage) %>% ungroup()
   
   # Ensure that there are no NA values in the result
   expect_false(any(is.na(calculated_crosstab)), info = "Your table should not have any NA values. Fill missing pairs with zeros.")

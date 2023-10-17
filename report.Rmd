@@ -1,5 +1,5 @@
 ---
-title: "Assignment Tidyverse Basics"
+title: "Assignment 1"
 author: Dakota Hawkins
 output: html_document
 ---
@@ -29,24 +29,27 @@ of `example_intensity_data.csv`, including specifying the value delimiter,
 transposing the matrix so samples are rows and probes are columns, and likewise
 ensure a `tibble` object is returned.
 ```{r}
-expr_mat <- read_expression_table('data/example_intensity_data.csv')
+expr_mat <- read_expression_table('data/example_intensity_data_subset.csv')
 knitr::kable(head(expr_mat[c(1:5)]))
 ```
 
 ## 3. Formatting Column Names 
 
-The column names of the metadata file contain various delimiters, including "."
-and "_". Standardize this by implementing the function `period_to_underscore` to
-properly replace all instances of "." with "_" in a string. Using a functional
-programming paradigm, apply this function to each column name in the metadata
-`tibble` and replace the column names.
-
-**Hint:** there are several possible solutions to this problem. Feel free to 
+First, construct a function to read the metadata in as a tibble,
+`load_metadata`. You will notice that the column names of the metadata file
+contain various delimiters, including "." and "_". Standardize this by
+implementing the function `period_to_underscore` to properly replace all
+instances of "." with "_" in a string. Using a functional programming paradigm,
+apply this function to each column name in the metadata `tibble` and replace the
+column names.
+**Hint:** there are several possible solutions to this problem. Feel free to
 Google possible ways to manipulate strings in `R`. One possible way is to use
-regular expressions and the `stringr` library. 
+regular expressions and the `stringr` library.
 ```{r}
-colnames(metadata) <-
-  lapply(colnames(metadata), period_to_underscore)
+metadata <- load_metadata('data/proj_metadata.csv')
+colnames(metadata)
+
+colnames(metadata) <- lapply(colnames(metadata), period_to_underscore)
 colnames(metadata)
 ```
 
@@ -128,8 +131,8 @@ expressed genes, or perhaps the most __variable__ genes. Implement the function
  calculate row or column-wise averages.
 
  **Extra:** instead of simply returning mean probe expression, re-work
- `summarize_expression()` to also return row _variability_ by first calculating
- row-wise variability across all samples, and adding the column to the
+ `summarize_expression()` to also return prove _variability_ by first calculating
+ prove-wise variability across all samples, and adding the column to the
  returned `tibble`. Denote the column as "variance". 
 
 ```{r}

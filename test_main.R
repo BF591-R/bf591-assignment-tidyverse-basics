@@ -1,144 +1,131 @@
 #!/usr/bin/Rscript
+
 source("main.R")
 library(testthat)
 library(tidyverse)
 
-
-# Test for read_expression_table function
-test_that("read_expression_table returns tibble with subject_id column", {
+describe("read_expression_table()", {
   result <- read_expression_table('data/example_intensity_data_subset.csv')
   
-  # Check for subject_id in column names
-  expect_true("subject_id" %in% names(result), 
-              info = "subject_id column is missing from the returned tibble. Make sure to include this column in your function output.")
-  
-  # Check if result is a tibble
-  expect_true(is_tibble(result), 
-              info = "The returned result is not a tibble. Ensure your function returns a tibble.")
+  it("created a tibble, not dataframe", {
+    expect_true(is_tibble(result))
+  })
+  it("created a new column named subject_id in the dataframe", {
+    expect_true("subject_id" %in% names(result))
+  })
+  it("returns a tibble with 35 rows and 1001 columns", {
+    expect_equal(c(nrow(result), ncol(result)), c(35, 1001))
+  })
 })
 
-
-
-test_that("load_metadata function loads metadata correctly", {
-  # The expected output using readr's read_csv function
-  expected_metadata <- readr::read_csv("data/proj_metadata.csv")
+describe("load_metadata()", {
+  metadata <- load_metadata('data/proj_metadata.csv')
   
-  # The output from the developer's function
-  calculated_metadata <- load_metadata("data/proj_metadata.csv")
-  
-  # Test: Compare the content of the expected and calculated metadata
-  expect_equal(expected_metadata, calculated_metadata, 
-               info = "The loaded metadata does not match the expected content.")
+  it("returns the metadata as a tibble", {
+    expect_true(is_tibble(metadata))
+  })
+  it("returns a tibble with exactly 134 rows, and 75 columns", {
+    expect_equal(c(nrow(metadata), ncol(metadata)), c(134, 75))
+  })
 })
 
-
-
-
-# Test for period_to_underscore function
-test_that("period_to_underscore replaces period with underscore", {
+describe("period_to_underscore()", {
   result <- period_to_underscore("foo.bar.baz")
   
-  # Check string manipulation
-  expect_equal(result, "foo_bar_baz", 
-               info = "The function did not replace periods with underscores correctly. Check the string manipulation in your function.")
+  #evaluates in order to catch functions that only replace one instance
+  it("does not return a string with only the first instance replaced", {
+    expect_false(result == "foo_bar.baz")
+  })
+  it("returns a string with all periods replaced by underscores", {
+    expect_equal(result, "foo_bar_baz")
+  })
 })
 
-
-# Test for rename_and_select function
-test_that("rename_and_select renames and selects the correct columns", {
-  
-  fake_tibble <- tibble(Age_at_diagnosis = rep(10, 10), SixSubtypesClassification = rep('C4', 10), normalizationcombatbatch=rep('batch1', 10), Sex = rep(10, 10), TNM_Stage = rep(10, 10), Tumor_Location = rep(10, 10), geo_accession = rep(10, 10), KRAS_Mutation = rep(10, 10), extra = rep(10, 10), extra2 = rep(10, 10))
+describe("rename_and_select()", {
+  set.seed(42)
+  fake_tibble <- tibble(Age_at_diagnosis = floor(runif(10, min=30, max=100)), 
+                        SixSubtypesClassification = c(rep('C4', 5), rep('C3', 5)),
+                        normalizationcombatbatch= c(rep('batch1', 3), rep('batch2', 7)), 
+                        Sex = c(rep('M', 3), rep('F', 7)), 
+                        TNM_Stage = floor(runif(10, min=1, max=4)), 
+                        Tumor_Location = c(rep('distal', 2), rep('proximal', 8)), 
+                        geo_accession = paste0("GSM1293", 0:9), 
+                        KRAS_Mutation = c(rep('-', 4), rep('+', 6)), 
+                        extra = rep(1, 10), 
+                        extra2 = rep(2, 10),
+                        extra3 = rep(3, 10))
   
   result <- rename_and_select(fake_tibble)
-  
   expected_names <- c("Sex", "Age", "TNM_Stage", "Tumor_Location", "geo_accession", "KRAS_Mutation", "Subtype", "Batch")
-  expect_identical(names(result), expected_names, info = "The returned tibble does not have the expected column names. Ensure your function renames and selects columns correctly.")
+
+  it("returns the same column names as specified", {
+    expect_true(setequal(names(result), expected_names))
+  })  
 })
 
-
-
-
-test_that("stage_as_factor adds a Stage column with the correct format", {
-  
-  # Define the fake_tibble inside this test function
-  fake_tibble <- tibble::tibble(
-    Age_at_diagnosis = rep(10, 10),
-    SixSubtypesClassification = rep('C4', 10),
-    normalizationcombatbatch = rep('batch1', 10),
-    Sex = rep(10, 10),
-    TNM_Stage = rep(10, 10), # We're using the same value 10 for this example. Ideally, this would be different stages.
-    Tumor_Location = rep(10, 10),
-    geo_accession = rep(10, 10),
-    KRAS_Mutation = rep(10, 10),
-    extra = rep(10, 10),
-    extra2 = rep(10, 10)
-  )
+describe("stage_as_factor()", {
+  set.seed(42)
+  fake_tibble <- tibble(Age = floor(runif(10, min=30, max=100)), 
+                        Subtype = c(rep('C4', 5), rep('C3', 5)),
+                        Batch= c(rep('batch1', 3), rep('batch2', 7)), 
+                        Sex = c(rep('M', 3), rep('F', 7)), 
+                        TNM_Stage = floor(runif(10, min=1, max=4)), 
+                        Tumor_Location = c(rep('distal', 2), rep('proximal', 8)), 
+                        geo_accession = paste0("GSM1293", 0:9), 
+                        KRAS_Mutation = c(rep('-', 4), rep('+', 6)))
   
   result <- stage_as_factor(fake_tibble)
   
-  expect_true("Stage" %in% names(result), info = "Stage column is missing from the returned tibble. Ensure your function adds this column.")
-  
-  expect_true(is.factor(result$Stage), info = "Stage column should be of type factor. Make sure you've set it as such.")
-  
-  expect_true(all(grepl("^stage ", result$Stage)), info = "Entries in the Stage column do not follow the 'stage x' format. Double-check the string manipulation in your function.")
-  
-  # Since our fake tibble has 10 as the TNM_Stage for all rows, let's also check if the Stage is correctly formatted as "stage 10"
-  expect_true(all(result$Stage == "stage 10"), info = "Stage column does not have the expected values. Check the transformation in your function.")
+  it("returns a new column called Stage", {
+    expect_true("Stage" %in% names(result))
+  })
+  it("converted the values of Stage to factors", {
+    expect_true(is.factor(result$Stage))
+  })
 })
 
-test_that("mean_age_by_sex calculates correct mean age for given sex", {
-  # Create dummy data
-  set.seed(123)  # Setting seed for reproducibility
+describe("mean_age_by_sex()", {
+  set.seed(42)
   data <- tibble(
-    Sex = sample(c("M", "F"), 100, replace = TRUE), 
-    Age = sample(15:90, 100, replace = TRUE)
+    Sex = sample(c("M", "F"), 100, replace=TRUE),
+    Age = sample(15:90, 100, replace=TRUE)
   )
   
-  for (sex in c("M", "F")) {
-    mean_age <- data %>%
-      filter(Sex == sex) %>%
-      summarize(mean_age = mean(Age, na.rm = TRUE)) %>%
-      pull(mean_age)
-    
-    result <- mean_age_by_sex(data, sex)
-    
-    expect_equal(as.double(result), as.double(mean_age), 
-                     info = paste("The calculated mean age for", sex, "does not match the expected value. Check the aggregation logic in your function."))
-  }
+  m_result <- mean_age_by_sex(data, "M") %>% pull()
+  f_result <- mean_age_by_sex(data, "F") %>% pull()
+  
+  it("correctly returns the average age for M", {
+    expect_true(dplyr::near(c(m_result), c(54.20455), tol=.1))
+  })
+  it("correctly returns the average age for F", {
+    expect_true(dplyr::near(c(f_result), c(47.69643), tol=.1))
+  })
 })
 
-
-
-test_that("age_by_stage calculates average age per stage correctly", {
-  # Create mock test data
+describe("age_by_stage()", {
   test_data <- tibble(
     Stage = c(rep('stage 1', 4), rep('stage 2', 3), rep('stage 3', 2), rep('stage 4', 1)),
     Age = c(21, 22, 23, 24, 25, 26, 27, 28, 29, 30)
   )
-  
-  # Apply function on mock test data
   calculated_result <- age_by_stage(test_data)
   test_result <- calculated_result %>% pull(mean_avg, Stage)
   
-  stage_names <- c('stage 1', 'stage 2', 'stage 3', 'stage 4')
+  stage_names <- c("stage 1", "stage 2", "stage 3", 'stage 4')
   stage_avgs <- c(22.5, 26, 28.5, 30)
   stage_means <- setNames(stage_avgs, stage_names)
   
-  # Ensure calculated_result has the required columns
-  expect_true(all(c("Stage", "mean_avg") %in% colnames(calculated_result)),
-              info = "The result should have 'Stage' and 'mean_avg' columns.")
-  
-  # Compare the calculated result to the expected result
-  expect_mapequal(
-    test_result, 
-    stage_means
-    )
+  it("returns a tibble", {
+    expect_true(is_tibble(calculated_result))
+  })
+  it("correctly returns the right columns", {
+    expect_true(all(c("Stage", "mean_avg") %in% colnames(calculated_result)))
+  })
+  it("returns the correct values for average age", {
+    expect_mapequal(test_result, stage_means)
+  })
 })
 
-
-# Test for subtype_stage_cross_tab function
-test_that("subtype_stage_cross_tab returns correct cross-tabulated table", {
-  # Create test data
+describe("subtype_stage_cross_tab()", {
   test_stage <- tibble(Stage = c(rep('stage 4', 2), rep('stage 3', 1), rep('stage 1', 4), rep('stage 2', 3)), 
                        Subtype = c(rep('C4', 3), rep('C3', 7)))
   
@@ -151,78 +138,47 @@ test_that("subtype_stage_cross_tab returns correct cross-tabulated table", {
     "stage 4", 0, 2
   )
   
-  # Calculate cross-tabulated result using the function
-  # could use is_grouped() but ungroup() seems to leave 
-  # ungrouped tibbles unchanged, this should fix dplyr
-  # count() and summarize() issues with grouped tibbles
-  # not being equivalent to ungrouped tibbles even if they
-  # are functionally the same
   calculated_crosstab <- subtype_stage_cross_tab(test_stage) %>% ungroup()
   
-  # Ensure that there are no NA values in the result
-  expect_false(any(is.na(calculated_crosstab)), info = "Your table should not have any NA values. Fill missing pairs with zeros.")
-  
-  # Ensure 'Stage' is present as a column
-  expect_true("Stage" %in% colnames(calculated_crosstab), info = "'Stage' should be present as a column in the calculated table.")
-  
-  # Check if the calculated result matches the expected result
-  expect_equal(test_crosstab, calculated_crosstab, info = "The calculated cross-tabulated table does not match the expected result.")
+  it("should not retun any NA values", {
+    expect_false(any(is.na(calculated_crosstab)))
+  })
+  it("should return Stage as a column", {
+    expect_true("Stage" %in% colnames(calculated_crosstab))
+  })
+  it("should match the expected results based on the test crosstab", {
+    expect_equal(test_crosstab, calculated_crosstab)
+  })
 })
 
-
-# Test for summarize_expression function
-test_that("summarize_expression behaves as expected", {
-  
-  # Create a synthetic tibble
+describe("summarize_expression()", {
   exprs <- tibble(
     subject_id = c("A", "B"),
     probe1 = c(1, 2),
     probe2 = c(2, 7),
     probe3 = c(3, 15)
   )
-
-  
   result <- summarize_expression(exprs)
-  
-  # Check that result is a tibble
-  expect_true(is_tibble(result), info = "The returned result is not a tibble. Ensure your function returns a tibble.")
-  
-  # Check that result has the expected columns
-  expect_identical(names(result), c("mean_exp", "variance", "probe"), info = "The returned tibble does not have the expected column names.")
-  
-  # Check number of rows
-  expect_equal(nrow(result), 3, info = "Mismatch in the number of rows of the result compared to the number of columns in the expression matrix.")
-  
-  # Check values in mean_exp column
   values_mean <- c(1.5, 4.5, 9)
-  names_mean <- c('probe1', 'probe2', 'probe3')
+  names_mean <- paste0("probe", 1:3)
   test_means <- setNames(values_mean, names_mean)
   
-  # tibbles do not auto-convert columns into a native format
-  # This should convert any format into a simple vector and 
-  # then a named vector which can be checked with expect_mapequal
-  # This works on a tibble with matrix columns, a tibble with named
-  # vectors as columns, and a tibble with vector columns
   exprs_mean_values <- c(result$mean_exp)
   exprs_mean_names <- c(result$probe)
   exprs_means <- setNames(exprs_mean_values, exprs_mean_names)
-  
-  expect_mapequal(exprs_means, test_means)
-  
-  # Check values in variance column
-  # same strategy as outlined in comment above
+    
   values_var <- c(0.5, 12.5, 72)
   names_var <- c('probe1', 'probe2', 'probe3')
   test_vars <- setNames(values_var, names_var)
-  
+    
   exprs_var_values <- c(result$variance)
   exprs_var_names <- c(result$probe)
   exprs_vars <- setNames(exprs_var_values, exprs_var_names)
-  
-  expect_mapequal(exprs_vars, test_vars)
-  
+    
+  it("should return the proper variance values from the test tibble", {
+    expect_mapequal(exprs_vars, test_vars)
+  })
+  it("should return the proper mean values from the test tibble", {
+    expect_mapequal(exprs_means, test_means)
+  })
 })
-
-
-
-

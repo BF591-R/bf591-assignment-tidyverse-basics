@@ -19,35 +19,24 @@ library(stringr)
 #' @return
 #' @export
 #'
-#' @examples expr_mat <- read_expression_table('example_intensity_data_subset.csv')
+#' @examples expr_mat <- read_expression_table('example_intensity_data.csv')
 read_expression_table <- function(filename) {
-  return (NULL)
+    return(NULL)
 }
 
-
-
-#' Load Metadata from Specified CSV File
+#' Read the proj_metadata.csv file as a tibble
+#' 
+#' Function should read the proj_metadata.csv file and return a tibble
 #'
-#' This function reads the provided CSV file into a dataframe.
+#' @param filename (str): the file to read
 #'
-#' @param filepath (character) The path to the CSV file.(data/proj_metadata.csv)
+#' @return
+#' @export
 #'
-#' @return A dataframe containing the loaded metadata.
-#'
-
-load_metadata <- function(filepath) {
-  
-  # TODO: Use appropriate function to read in the CSV file
-  #metadata <-   
-    
-    # Return the loaded metadata
-    #return(metadata)
+#' @examples
+load_metadata <- function(filename) {
+    return(NULL)
 }
-
-
-
-
-
 
 #' Replaces all '.' in a string with '_'
 #'
@@ -60,7 +49,7 @@ load_metadata <- function(filepath) {
 #' period_to_underscore("foo.bar")
 #' "foo_bar"
 period_to_underscore <- function(str) {
-  return ("")
+    return(NULL)
 }
 
 
@@ -85,7 +74,7 @@ period_to_underscore <- function(str) {
 #' 
 #' 
 rename_and_select <- function(data) {
-  return (NULL)
+    return(NULL)
 }
 
 
@@ -102,7 +91,7 @@ rename_and_select <- function(data) {
 #'
 #' @examples metadata <- stage_as_factor(metadata)
 stage_as_factor <- function(data) {
-  return (NULL)
+    return(NULL)
 }
 
 
@@ -117,7 +106,7 @@ stage_as_factor <- function(data) {
 #'
 #' @examples mean_age_by_sex(metadata, "F")
 mean_age_by_sex <- function(data, sex) {
-  return (NULL)
+    return(NULL)
 }
 
 
@@ -127,12 +116,12 @@ mean_age_by_sex <- function(data, sex) {
 #' @param data (tibble) metadata information for each sample
 #'
 #' @return (tibble) summarized tibble containing average age for all samples from
-#' each stage. Name the newly created column containing the average, 'mean_avg'
+#' each stage.
 #' @export
 #'
 #' @examples age_by_stage(data)
 age_by_stage <- function(data) {
-  return (NULL)
+    return(NULL)
 }
 
 #' Create a cross tabulated table for Subtype and Stage using dplyr methods.
@@ -147,7 +136,7 @@ age_by_stage <- function(data) {
 #'
 #' @examples cross_tab <- dplyr_cross_tab(metadata)
 subtype_stage_cross_tab <- function(data) {
-  return (NULL)
+    return(NULL)
 }
 
 #' Summarize average expression and probe variability over expression matrix.
@@ -158,6 +147,7 @@ subtype_stage_cross_tab <- function(data) {
 #' @return A summarized tibble containing `mean_exp`, `variance`, and `probe`
 #' columns documenting average expression, probe variability, and probe ids,
 #' respectively.
-summarize_expression <- function(exprs) {
-  return (NULL)
+summarize_expression <- function(expr_mat) {
+    return(NULL)
 }
+

@@ -58,7 +58,7 @@ assignment:
 5. In the workflow, you will go back and forth between developing code in `main.R`
   and running code chunks in report.Rmd
 6. In addition to inspecting your report results, also run
-  `testthat:test_file('test_main.R')` to ensure they work correctly.
+  `testthat::test_file('test_main.R')` to ensure they work correctly.
 7. When you have developed function bodies for all the functions and executed
   all the code chunks in the report successfully, you should be able to knit the
   entire report

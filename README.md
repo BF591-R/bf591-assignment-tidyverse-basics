@@ -13,6 +13,10 @@ different modes of data (i.e. microarray expression data is kept separate
 from clinical data detailing the samples). You will get an opportunity to work
 with both of these datasets, and be required to cross reference between the two.
 
+### Required Readings
+
+Please read sections 6.3 through 6.10 in the textbook. Section 6.3 starts [here](https://bu-bioinfo.github.io/r-for-biological-sciences/data-wrangling.html#importing-data)
+
 ### Learning Objectives and Skill List
 - Install various packages needed for analysis
 - Load Data
@@ -24,6 +28,9 @@ with both of these datasets, and be required to cross reference between the two.
 ### Instructions
 Our main focus for this assignment are installing packages, manipulating data,
 and summarizing important statistics across both samples and features (genes).
+
+Please accept the GitHub classroom link provided on blackboard for this
+assignment.
 
 The project is laid out as such:  
 ```

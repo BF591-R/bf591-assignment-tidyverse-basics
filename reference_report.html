@@ -680,7 +680,7 @@ these methods in the <code>age_by_stage</code> and
 <code>subtype_stage_cross_tab</code> functions, respectively.</p>
 <pre class="r"><code>age_by_stage(selected_metadata)</code></pre>
 <pre><code>## # A tibble: 4 × 2
-##   Stage   mean_avg
+##   Stage   mean_age
 ##   &lt;fct&gt;      &lt;dbl&gt;
 ## 1 stage 1     68.4
 ## 2 stage 2     68.6
@@ -788,7 +788,7 @@ print(paste0(&quot;The average male age is: &quot;, round(mean_age_by_sex(sub_me
 <pre><code>## [1] &quot;The average female age is: 71&quot;</code></pre>
 <pre class="r"><code>print(age_by_stage(sub_meta))</code></pre>
 <pre><code>## # A tibble: 4 × 2
-##   Stage   mean_avg
+##   Stage   mean_age
 ##   &lt;fct&gt;      &lt;dbl&gt;
 ## 1 stage 1     65  
 ## 2 stage 2     71.7

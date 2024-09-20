@@ -108,7 +108,7 @@ describe("age_by_stage()", {
     Age = c(21, 22, 23, 24, 25, 26, 27, 28, 29, 30)
   )
   calculated_result <- age_by_stage(test_data)
-  test_result <- calculated_result %>% pull(mean_avg, Stage)
+  test_result <- calculated_result %>% pull(mean_age, Stage)
   
   stage_names <- c("stage 1", "stage 2", "stage 3", 'stage 4')
   stage_avgs <- c(22.5, 26, 28.5, 30)
@@ -118,7 +118,7 @@ describe("age_by_stage()", {
     expect_true(is_tibble(calculated_result))
   })
   it("correctly returns the right columns", {
-    expect_true(all(c("Stage", "mean_avg") %in% colnames(calculated_result)))
+    expect_true(all(c("Stage", "mean_age") %in% colnames(calculated_result)))
   })
   it("returns the correct values for average age", {
     expect_mapequal(test_result, stage_means)

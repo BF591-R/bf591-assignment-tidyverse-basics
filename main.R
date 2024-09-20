@@ -109,7 +109,7 @@ mean_age_by_sex <- function(data, sex) {
 #' @param data (tibble) metadata information for each sample
 #'
 #' @return (tibble) summarized tibble containing average age for all samples from
-#' each stage.
+#' each stage. Please name the generated column `mean_age`
 #' @export
 #'
 #' @examples age_by_stage(data)

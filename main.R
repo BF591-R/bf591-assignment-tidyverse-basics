@@ -93,7 +93,8 @@ stage_as_factor <- function(data) {
 #' @param sex (str) which sex to calculate mean age. Possible values are "M"
 #' and "F"
 #'
-#' @return (float) mean age of specified samples
+#' @return (tibble) 1x1 tibble containing the value for the mean age for the 
+#'                  selected group
 #' @export
 #'
 #' @examples mean_age_by_sex(metadata, "F")

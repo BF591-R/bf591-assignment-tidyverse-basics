@@ -11,7 +11,8 @@ contains gene probe expression data for various samples collected from cancer
 patients. In bioinformatics, it is common to have multiple datasets for your
 different modes of data (i.e. microarray expression data is kept separate
 from clinical data detailing the samples). You will get an opportunity to work
-with both of these datasets, and be required to cross reference between the two.
+with both of these datasets, and be required to cross reference between the two
+later.
 
 ### Required Readings
 
